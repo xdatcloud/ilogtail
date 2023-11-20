@@ -263,7 +263,8 @@ void SlsSplUnittest::TestRegexParse() {
     Config config;
     config.mDiscardUnmatch = false;
     config.mUploadRawLog = false;
-    config.mSpl = R"(* | parse-regexp content, '(\S+)\s+(\w+)' as ip, method)";
+    config.mSpl = "* |parse-regexp content, '^(\\S+)\\s-\\s\\[([^]]+)]\\s-\\s(\\S+)\\s\\[(\\S+)\\s\\S+\\s\"(\\w+)\\s(\\S+)\\s([^\"]+)\"\\s(\\d+)\\s(\\d+)\\s\"([^\"]*)\"\\s\"([^\"]*)\"\\s(\\S+)\\s(\\S+)+\\s\\[([^]]*)]\\s(\\S+)\\s(\\S+)\\s(\\S+)\\s(\\S+)\\s(\\S+)\\s*(\\S*).*' as client_ip,x_forward_for,remote_user,time,method,url,version,status,body_bytes_sent,http_referer,http_user_agent,request_length,request_time,proxy_upstream_name,upstream_addr,upstream_response_length,upstream_response_time,upstream_status,req_id,host";
+
 
     // make events
     auto sourceBuffer = std::make_shared<SourceBuffer>();
@@ -274,7 +275,7 @@ void SlsSplUnittest::TestRegexParse() {
             {
                 "contents" :
                 {
-                    "content" : "10.0.0.0 GET /index.html 15824 0.043"
+                    "content" : "106.14.76.139 - [106.14.76.139] - - [08/Nov/2023:13:12:52 +0800] \"POST /api/v1/trade/queryLast HTTP/1.1\" 200 34 \"-\" \"okhttp/3.14.9\" 1313 0.003 [sas-devops-202210191027-svc-80] 10.33.95.216:7001 34 0.003 200 d82accba8c35ad7de27a3a64926a03d0 stosas-test.sto.cn"
                 },
                 "timestamp" : 1234567890,
                 "timestampNanosecond" : 0,
@@ -283,7 +284,7 @@ void SlsSplUnittest::TestRegexParse() {
             {
                 "contents" :
                 {
-                    "content" : "10.0.0.1 POST /index.html 15824 0.043"
+                    "content" : "106.14.76.139 - [106.14.76.139] - - [08/Nov/2023:13:12:52 +0800] \"POST /api/v1/trade/queryLast HTTP/1.1\" 200 34 \"-\" \"okhttp/3.14.9\" 1313 0.003 [sas-devops-202210191027-svc-80] 10.33.95.216:7001 34 0.003 200 d82accba8c35ad7de27a3a64926a03d0 stosas-test.sto.cn"
                 },
                 "timestamp" : 1234567890,
                 "timestampNanosecond" : 0,
@@ -312,6 +313,8 @@ void SlsSplUnittest::TestRegexParse() {
 
     if (logGroupList.size() > 0) {
         for (auto& logGroup : logGroupList) {
+            std::string outJson = logGroup.ToJsonString();
+            std::cout << "outJson: " << outJson << std::endl;
             APSARA_TEST_EQUAL(2, logGroup.GetEvents().size());
             if (logGroup.GetEvents().size() == 2) {
                 {
@@ -672,6 +675,9 @@ $ds2;
     }    
     return;
 }
+
+
+
 
 
 

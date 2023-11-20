@@ -1898,8 +1898,8 @@ void LogFileReader::ReadUTF8(LogBuffer& logBuffer, int64_t end, bool& moreData, 
     const size_t stringBufferLen = nbytes;
     logBuffer.truncateInfo.reset(truncateInfo);
     lastReadPos = mLastFilePos + nbytes; // this doesn't seem right when ulogfs is used and a hole is skipped
-    LOG_DEBUG(sLogger, ("read bytes", nbytes)("last read pos", lastReadPos));
     moreData = (nbytes == BUFFER_SIZE);
+    LOG_DEBUG(sLogger, ("read bytes", nbytes)("last read pos", lastReadPos)("moreData", moreData)("file: ", mHostLogPath));
     auto alignedBytes = nbytes;
     if (allowRollback) {
         alignedBytes = AlignLastCharacter(stringBuffer, nbytes);

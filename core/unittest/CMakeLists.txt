@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 2.9)
 project(unittest_base)
 
 add_definitions(-DAPSARA_UNIT_TEST_MAIN)
-add_definitions(-DLOGTAIL_NO_TC_MALLOC)
+#add_definitions(-DLOGTAIL_NO_TC_MALLOC)
 if (MSVC)
     add_definitions(-DNOMINMAX)
 endif ()
@@ -35,9 +35,9 @@ link_re2(${PROJECT_NAME})
 link_protobuf(${PROJECT_NAME})
 link_cityhash(${PROJECT_NAME})
 link_leveldb(${PROJECT_NAME})
-
-
 link_slsspl(${PROJECT_NAME})
+link_tcmalloc(${PROJECT_NAME})
+
 
 if (UNIX)
     target_link_libraries(${PROJECT_NAME} pthread uuid dl)

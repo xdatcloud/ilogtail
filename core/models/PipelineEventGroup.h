@@ -103,13 +103,13 @@ public:
 
     uint64_t EventGroupSizeBytes();
 
-#ifdef APSARA_UNIT_TEST_MAIN
+//#ifdef APSARA_UNIT_TEST_MAIN
     // for debug and test
     Json::Value ToJson() const;
     bool FromJson(const Json::Value&);
     std::string ToJsonString() const;
     bool FromJsonString(const std::string&);
-#endif
+//#endif
 private:
     GroupMetadata mMetadata; // Used to generate tag/log. Will not output.
     GroupTags mTags; // custom tags to output

@@ -1,4 +1,3 @@
-#include <benchmark/benchmark.h>
 #include "common/JsonUtil.h"
 #include "config/Config.h"
 #include "sls_spl/ProcessorSPL.h"
@@ -25,6 +24,7 @@ std::string formatSize(long long size) {
     return ss.str();
 }
 
+/*
 template <int size>
 static void BM_SplNoProcess(benchmark::State& state) {
     logtail::Logger::Instance().InitGlobalLoggers();
@@ -158,7 +158,7 @@ static void BM_RawNoProcess(benchmark::State& state) {
         //std::cout << "RawNoProcess count: " << count << std::endl;
     }
 }
-
+*/
 
 static void BM_SplRegex(int size, int batchSize) {
     logtail::Logger::Instance().InitGlobalLoggers();
@@ -631,12 +631,12 @@ int main(int argc, char** argv) {
     std::cout << "debug" << std::endl;
 #endif
 
-    BM_SplRegex(1000, 100);
-    BM_RawRegex(1000, 100);
-    BM_SplJson(1000, 100);
-    BM_RawJson(1000, 100);
-    BM_SplSplit(1000, 100);
-    BM_SplEmpty(1000, 100);
+    BM_SplRegex(1000, 1000);
+    BM_RawRegex(1000, 1000);
+    BM_SplJson(1000, 1000);
+    BM_RawJson(1000, 1000);
+    BM_SplSplit(1000, 1000);
+    BM_SplEmpty(1000, 1000);
     return 0;
 }
 

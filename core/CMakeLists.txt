@@ -16,9 +16,9 @@ cmake_minimum_required(VERSION 2.9)
 project(logtail)
 
 # Options.
-option(BUILD_LOGTAIL_UT "Build unit test for Logtail" OFF)
+option(BUILD_LOGTAIL_UT "Build unit test for Logtail" ON)
 option(ENABLE_COMPATIBLE_MODE "Build Logtail in compatible mode (for low version Linux)" OFF)
-option(ENABLE_STATIC_LINK_CRT "Build Logtail by linking CRT statically" OFF)
+option(ENABLE_STATIC_LINK_CRT "Build Logtail by linking CRT statically" ON)
 option(WITHOUTGDB "Build Logtail without gdb" OFF)
 
 # Name/Version information.
@@ -45,21 +45,26 @@ set(LOGTAIL_TARGET "ilogtail")
 set(VERSION_CPP_FILE ${CMAKE_CURRENT_SOURCE_DIR}/common/Version.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/common/Version.cpp.in ${VERSION_CPP_FILE})
 
+
 # Default C/CXX flags.
 if (UNIX)
-    if (WITHOUTGDB)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fpic -fPIC -D_LARGEFILE64_SOURCE")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -fpic -fPIC -D_LARGEFILE64_SOURCE")
-    else ()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -g -ggdb -fpic -fPIC -D_LARGEFILE64_SOURCE")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g -ggdb -fpic -fPIC -D_LARGEFILE64_SOURCE")
-    endif ()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_FILE_OFFSET_BITS=64 -DNDEBUG -fno-strict-aliasing -pthread -pipe -Wno-deprecated-declarations -Wall -fpic -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64 -DNDEBUG -fno-strict-aliasing -pthread -pipe -Wno-deprecated-declarations -Wall -fPIC -Wno-error=parentheses -Wno-error=write-strings -Wno-error=unused-but-set-variable -Wno-unused-but-set-variable -Wno-parentheses -D_GLIBCXX_PERMIT_BACKWARD_HASH -fno-sized-deallocation -std=gnu++14 -std=c++17 -mavx   -D_GLIBCXX_USE_CXX11_ABI=0 -D__GLIBCXX_BITSIZE_INT_N_0=128 -D__GLIBCXX_TYPE_INT_N_0=__int128 -DNDEBUG=1")
+    
+
+    #if (WITHOUTGDB)
+    #    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fpic -fPIC -D_LARGEFILE64_SOURCE")
+    #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -mavx -Wall -fpic -fPIC -D_LARGEFILE64_SOURCE")
+    #else ()
+    #    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -g -ggdb -fpic -fPIC -D_LARGEFILE64_SOURCE")
+    #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -mavx -Wall -g -ggdb -fpic -fPIC -D_LARGEFILE64_SOURCE")
+    #endif ()
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
-    string(REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-    string(REPLACE "-O3" "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+    #string(REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    #string(REPLACE "-O3" "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 elseif (MSVC)
     add_definitions(-DNOMINMAX)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /MP /Zi")
@@ -79,6 +84,11 @@ if (ENABLE_COMPATIBLE_MODE)
         add_definitions(-DENABLE_COMPATIBLE_MODE)
     endif ()
 endif ()
+
+message(STATUS "CMAKE_C_FLAGS ${CMAKE_C_FLAGS}")
+message(STATUS "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE}")
+message(STATUS "CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE}")
 
 # Dependencies.
 include(${CMAKE_CURRENT_SOURCE_DIR}/utils.cmake)
@@ -112,7 +122,8 @@ endforeach (DIR_NAME)
 
 # Logtail executable.
 if (UNIX)
-    add_executable(${LOGTAIL_TARGET} logtail.cpp)
+    #add_executable(${LOGTAIL_TARGET} logtail.cpp)
+    add_executable(${LOGTAIL_TARGET} SplBenchmark.cpp)
 elseif (MSVC)
     add_executable(${LOGTAIL_TARGET} logtail_windows.cpp)
 endif ()
@@ -122,6 +133,7 @@ target_link_libraries(${LOGTAIL_TARGET}
         config_manager
         checkpoint
         processor_daemon
+        processor
         controller
         pipeline
         plugin

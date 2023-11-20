@@ -15,7 +15,7 @@ void PipelineEventGroupOutput::setHeader(const IOHeader& header, std::string& er
     mIOHeader = &header;
     for (int32_t i=0; i<header.columnNames.size(); i++) {
         auto field = header.columnNames[i].ToString();
-        LOG_DEBUG(sLogger, ("columeName", field));
+        // LOG_DEBUG(sLogger, ("columeName", field));
         auto length = field.length();
         if (length >= LENGTH_FIELD_PREFIX_TAG && 
                 field.compare(0, LENGTH_FIELD_PREFIX_TAG, FIELD_PREFIX_TAG) == 0) { // __tag__:*
@@ -37,7 +37,7 @@ void PipelineEventGroupOutput::addRow(
     std::ostringstream oss;
     for (const auto& idxTag : mTagsIdxs) { 
         oss << mIOHeader->columnNames[idxTag] << row[idxTag];
-        LOG_DEBUG(sLogger, ("tag key", StringView(mIOHeader->columnNames[idxTag].mPtr, mIOHeader->columnNames[idxTag].mLen))("tag value", StringView(row[idxTag].mPtr, row[idxTag].mLen)));
+        // LOG_DEBUG(sLogger, ("tag key", StringView(mIOHeader->columnNames[idxTag].mPtr, mIOHeader->columnNames[idxTag].mLen))("tag value", StringView(row[idxTag].mPtr, row[idxTag].mLen)));
     }
     int64_t tagStrHash = HashString(oss.str());
     int32_t logGroupKeyIdx = -1;
@@ -62,7 +62,7 @@ void PipelineEventGroupOutput::addRow(
         } else {
             targetEvent->SetContent(StringView(mIOHeader->columnNames[idxContent].mPtr, mIOHeader->columnNames[idxContent].mLen), StringView(row[idxContent].mPtr, row[idxContent].mLen));
         }
-        LOG_DEBUG(sLogger, ("content key", StringView(mIOHeader->columnNames[idxContent].mPtr, mIOHeader->columnNames[idxContent].mLen))("content value", StringView(row[idxContent].mPtr, row[idxContent].mLen)));
+        // LOG_DEBUG(sLogger, ("content key", StringView(mIOHeader->columnNames[idxContent].mPtr, mIOHeader->columnNames[idxContent].mLen))("content value", StringView(row[idxContent].mPtr, row[idxContent].mLen)));
     }
 
     for (const auto& idxTag : mTagsIdxs) {

@@ -98,7 +98,7 @@ uint64_t PipelineEventGroup::EventGroupSizeBytes() {
     return 0;
 }
 
-#ifdef APSARA_UNIT_TEST_MAIN
+//#ifdef APSARA_UNIT_TEST_MAIN
 const std::string EVENT_GROUP_META_AGENT_TAG = "agent.tag";
 const std::string EVENT_GROUP_META_HOST_IP = "host.ip";
 const std::string EVENT_GROUP_META_HOST_NAME = "host.name";
@@ -243,6 +243,6 @@ bool PipelineEventGroup::FromJsonString(const std::string& inJson) {
     }
     return FromJson(root);
 }
-#endif
+//#endif
 
 } // namespace logtail

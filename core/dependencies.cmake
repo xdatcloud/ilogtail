@@ -487,4 +487,7 @@ macro(link_slsspl target_name)
     target_link_libraries(${target_name} "/opt/logtail_spl/lib/libcrypto.a")
     target_link_libraries(${target_name} "/opt/logtail_spl/lib/libevent_pthreads.a")
 
+
+
+
 endmacro()
