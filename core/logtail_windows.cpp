@@ -18,7 +18,6 @@
 #include <fstream>
 #include <errno.h>
 #include "common/version.h"
-#include "common/util.h"
 #include "common/LogtailCommonFlags.h"
 #include "common/RuntimeUtil.h"
 #include "common/TimeUtil.h"
@@ -26,18 +25,13 @@
 #include "common/CrashBackTraceUtil.h"
 #include "common/MachineInfoUtil.h"
 #include "common/ErrorUtil.h"
-#include "common/GlobalPara.h"
 #include "logger/Logger.h"
-#ifdef LOGTAIL_RUNTIME_PLUGIN
-#include "go_pipeline/LogtailRuntimePlugin.h"
-#endif
 #include "go_pipeline/LogtailPlugin.h"
 #include "plugin/PluginRegistry.h"
 #include "pipeline/PipelineManager.h"
 #include "config_manager/ConfigManager.h"
 #include "checkpoint/CheckPointManager.h"
 #include "checkpoint/AdhocCheckpointManager.h"
-#include "processor/LogFilter.h"
 #include "controller/EventDispatcher.h"
 #include "monitor/Monitor.h"
 #include "sender/Sender.h"
@@ -46,16 +40,19 @@
 #include "monitor/LogIntegrity.h"
 #include "monitor/LogLineCount.h"
 #include "app_config/AppConfig.h"
+#include "application/Application.h"
+
 using namespace logtail;
 
 DEFINE_FLAG_STRING(ilogtail_daemon_startup_hints, "hints passed from daemon during startup", "");
-DECLARE_FLAG_STRING(ilogtail_config_env_name);
 DECLARE_FLAG_STRING(logtail_sys_conf_dir);
 DECLARE_FLAG_STRING(check_point_filename);
 DECLARE_FLAG_STRING(default_buffer_file_path);
 DECLARE_FLAG_STRING(ilogtail_docker_file_path_config);
 DECLARE_FLAG_INT32(data_server_port);
 DECLARE_FLAG_BOOL(enable_env_ref_in_config);
+DECLARE_FLAG_BOOL(enable_sls_metrics_format);
+DECLARE_FLAG_BOOL(enable_containerd_upper_dir_detect);
 
 static void overwrite_community_edition_flags() {
     // support run in installation dir on default
@@ -134,22 +131,9 @@ void do_worker_process() {
     LogtailMonitor::Instance()->UpdateConstMetric("start_time", GetTimeStamp(time(NULL), "%Y-%m-%d %H:%M:%S"));
 
     // use a thread to get uuid
-    if (!ConfigManager::GetInstance()->TryGetUUID()) {
+    if (!Application::GetInstance()->TryGetUUID()) {
         APSARA_LOG_INFO(sLogger, ("get none dmi uuid", "maybe this is a docker runtime"));
     }
-
-    PluginRegistry::GetInstance()->LoadPlugins();
-#ifdef LOGTAIL_RUNTIME_PLUGIN
-    LogtailRuntimePlugin::GetInstance()->LoadPluginBase();
-#endif
-
-    // load local config first
-    ConfigManager::GetInstance()->GetLocalConfigUpdate();
-    ConfigManager::GetInstance()->LoadConfig(AppConfig::GetInstance()->GetUserConfigPath());
-    PipelineManager::GetInstance()->LoadAllPipelines();
-    ConfigManager::GetInstance()->LoadDockerConfig();
-    // mNameConfigMap is empty, configExistFlag is false
-    bool configExistFlag = !ConfigManager::GetInstance()->GetAllConfig().empty();
 
     std::string backTraceStr = GetCrashBackTrace();
     if (backTraceStr.size() > 0) {
@@ -174,27 +158,11 @@ void do_worker_process() {
         }
     }
 
-    LogtailMonitor::Instance()->InitMonitor();
-    LogFilter::Instance()->InitFilter(STRING_FLAG(user_log_config));
-
-    Sender::Instance()->InitSender();
-
-    LogtailPlugin* pPlugin = LogtailPlugin::GetInstance();
-    pPlugin->Resume();
-
-    CheckPointManager::Instance()->LoadCheckPoint();
-    // AdhocCheckpointManager::GetInstance()->LoadAdhocCheckpoint();
-
-    // added by xianzhi(bowen.gbw@antfin.com)
-    // read local data_integrity json file and line count file
-    LogIntegrity::GetInstance()->ReloadIntegrityDataFromLocalFile();
-    LogLineCount::GetInstance()->ReloadLineCountDataFromLocalFile();
-
     Json::Value appInfoJson;
     appInfoJson["ip"] = Json::Value(LogFileProfiler::mIpAddr);
     appInfoJson["hostname"] = Json::Value(LogFileProfiler::mHostname);
-    appInfoJson["UUID"] = Json::Value(ConfigManager::GetInstance()->GetUUID());
-    appInfoJson["instance_id"] = Json::Value(ConfigManager::GetInstance()->GetInstanceId());
+    appInfoJson["UUID"] = Json::Value(Application::GetInstance()->GetUUID());
+    appInfoJson["instance_id"] = Json::Value(Application::GetInstance()->GetInstanceId());
     appInfoJson["logtail_version"] = Json::Value(ILOGTAIL_VERSION);
     appInfoJson["git_hash"] = Json::Value(ILOGTAIL_GIT_HASH);
 #define STRINGIFY(x) #x
@@ -208,12 +176,7 @@ void do_worker_process() {
     OverwriteFile(GetProcessExecutionDir() + STRING_FLAG(app_info_file), appInfo);
     APSARA_LOG_INFO(sLogger, ("appInfo", appInfo));
 
-    ConfigManager::GetInstance()->InitUpdateConfig(configExistFlag);
-    ConfigManager::GetInstance()->RegisterHandlers();
-    EventDispatcher::GetInstance()->AddExistedCheckPointFileEvents();
-    APSARA_LOG_INFO(sLogger, ("Logtail started", "initialization completed"));
-
-    EventDispatcher::GetInstance()->Dispatch();
+    Application::GetInstance()->Start();
 }
 
 int main(int argc, char** argv) {

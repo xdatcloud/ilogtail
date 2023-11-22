@@ -16,48 +16,26 @@
 
 #include "processor/ProcessorParseRegexNative.h"
 
+#include "common/StringTools.h"
 #include "app_config/AppConfig.h"
-#include "parser/LogParser.h" // for UNMATCH_LOG_KEY
 #include "common/Constants.h"
 #include "monitor/LogtailMetric.h"
 #include "monitor/MetricConstants.h"
 #include "common/TimeUtil.h"
 #include "plugin/instance/ProcessorInstance.h"
 #include "monitor/MetricConstants.h"
+#include "common/ParamExtractor.h"
 
 namespace logtail {
 const std::string ProcessorParseRegexNative::sName = "processor_parse_regex_native";
 
-bool ProcessorParseRegexNative::Init(const ComponentConfig& componentConfig) {
-    const PipelineConfig& config = componentConfig.GetConfig();
-
-    mSourceKey = DEFAULT_CONTENT_KEY;
-    mDiscardUnmatch = config.mDiscardUnmatch;
-    mUploadRawLog = config.mUploadRawLog;
-    mRawLogTag = config.mAdvancedConfig.mRawLogTag;
-
-    if (config.mRegs && config.mKeys) {
-        std::list<std::string>::iterator regitr = config.mRegs->begin();
-        std::list<std::string>::iterator keyitr = config.mKeys->begin();
-        for (; regitr != config.mRegs->end() && keyitr != config.mKeys->end(); ++regitr, ++keyitr) {
-            AddUserDefinedFormat(*regitr, *keyitr);
-        }
-        if (mUploadRawLog && mRawLogTag == mSourceKey) {
-            mSourceKeyOverwritten = true;
-        }
+bool ProcessorParseRegexNative::Init(const Json::Value& config) {
+    std::string errorMsg;
+    if (!GetMandatoryStringParam(config, "Regex", mSourceKey, errorMsg)) {
+        PARAM_ERROR_RETURN(mContext->GetLogger(), errorMsg, sName, mContext->GetConfigName());
     }
-    mParseFailures = &(GetContext().GetProcessProfile().parseFailures);
-    mRegexMatchFailures = &(GetContext().GetProcessProfile().regexMatchFailures);
-    mLogGroupSize = &(GetContext().GetProcessProfile().logGroupSize);
-
-    mProcParseInSizeBytes = GetMetricsRecordRef().CreateCounter(METRIC_PROC_PARSE_IN_SIZE_BYTES);
-    mProcParseOutSizeBytes = GetMetricsRecordRef().CreateCounter(METRIC_PROC_PARSE_OUT_SIZE_BYTES);
-    mProcDiscardRecordsTotal = GetMetricsRecordRef().CreateCounter(METRIC_PROC_DISCARD_RECORDS_TOTAL);
-    mProcParseErrorTotal = GetMetricsRecordRef().CreateCounter(METRIC_PROC_PARSE_ERROR_TOTAL);
-    mProcKeyCountNotMatchErrorTotal = GetMetricsRecordRef().CreateCounter(METRIC_PROC_KEY_COUNT_NOT_MATCH_ERROR_TOTAL);
     return true;
 }
-
 
 void ProcessorParseRegexNative::Process(PipelineEventGroup& logGroup) {
     if (logGroup.GetEvents().empty() || mUserDefinedFormat.empty()) {

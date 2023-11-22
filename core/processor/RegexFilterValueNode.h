@@ -19,7 +19,6 @@
 
 #include <boost/regex.hpp>
 #include "BaseFilterNode.h"
-#include "common/util.h"
 #include "app_config/AppConfig.h"
 #include "monitor/LogtailAlarm.h"
 #include "logger/Logger.h"
@@ -35,7 +34,7 @@ public:
     virtual ~RegexFilterValueNode() {}
 
 public:
-    virtual bool Match(const sls_logs::Log& log, const LogGroupContext& context) {
+    virtual bool Match(const sls_logs::Log& log, const LogGroupContext& context) override {
         for (int i = 0; i < log.contents_size(); ++i) {
             const sls_logs::Log_Content& content = log.contents(i);
             if (content.key() != key) {
@@ -55,7 +54,7 @@ public:
         return false;
     }
 
-    virtual bool Match(const LogContents& contents,  PipelineContext& mContext) {
+    virtual bool Match(const LogContents& contents,  const PipelineContext& mContext) override {
         const auto& content = contents.find(key);
         if (content == contents.end()) {
             return false;
