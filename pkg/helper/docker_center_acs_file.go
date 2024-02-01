@@ -43,7 +43,7 @@ const namespaceLabelKey = "io.kubernetes.pod.namespace"
 const defaultAcsStaticContainerInfoMountPath = "/logtail_host/bundle"
 const defaultAcsPodInfoMountPath = "/etc/podinfo"
 
-const defaultStdoutMountPath = "/stdlog"
+const defaultStdoutMountPath = "../stdlog"
 
 var acsStaticContainerInfoMountPath string
 var acsPodInfoMountPath string
@@ -93,7 +93,7 @@ func staticACSContainerInfoToStandard(staticInfo *OCIContainerInfo, stat fs.File
 			ID:      containerID,
 			Name:    containerName,
 			Created: created.Format(time.RFC3339Nano),
-			LogPath: defaultStdoutMountPath + "/" + containerName,
+			LogPath: defaultStdoutMountPath + "/" + containerName + "/0.log",
 
 			State: &types.ContainerState{
 				Status: status,
