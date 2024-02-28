@@ -34,6 +34,7 @@ import (
 )
 
 const staticContainerInfoPathEnvKey = "ALIYUN_LOG_STATIC_CONTAINER_INFO"
+const containerProviderEnvKey = "ALIYUN_LOG_CONTAINER_PROVIDER"
 
 // const staticContainerType = "ALIYUN_LOG_STATIC_CONTAINER_TYPE"
 // const staticContainerDScanInterval = "ALIYUN_LOG_STATIC_CONTAINED_SCAN_INTERVAL"
@@ -47,6 +48,15 @@ var loadStaticContainerOnce sync.Once
 var staticDockerContainerLastStat StateOS
 var staticDockerContainerFile string
 var staticDockerContainerLastBody string
+
+var staticContainerProvider ContainerProvider
+
+type ContainerProvider interface {
+	tryReadStaticContainerInfo() ([]types.ContainerJSON, []string, bool, error)
+}
+
+type ECIContainerProvider struct {
+}
 
 type staticContainerMount struct {
 	Source      string
@@ -235,12 +245,23 @@ func innerReadStatisContainerInfo(file string, lastContainerInfo []types.Contain
 	return containers, removed, changed, err
 }
 
-func isStaticContainerInfoEnabled() bool {
+func isStaticContainerInfoEnabled() (enable bool, provider ContainerProvider) {
+	contanierProvider := os.Getenv(containerProviderEnvKey)
+	if len(contanierProvider) > 0 {
+		if contanierProvider == "ACS" {
+			acsContaienrProvider := ACSContainerProvider{}
+			return true, &acsContaienrProvider
+		}
+	}
 	envPath := os.Getenv(staticContainerInfoPathEnvKey)
-	return len(envPath) != 0
+	if len(envPath) > 0 {
+		eciContainerProvide := ECIContainerProvider{}
+		return true, &eciContainerProvide
+	}
+	return false, nil
 }
 
-func tryReadStaticContainerInfo() ([]types.ContainerJSON, []string, bool, error) {
+func (e *ECIContainerProvider) tryReadStaticContainerInfo() ([]types.ContainerJSON, []string, bool, error) {
 	statusChanged := false
 	loadStaticContainerOnce.Do(
 		func() {

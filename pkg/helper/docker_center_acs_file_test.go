@@ -537,13 +537,15 @@ func TestTryReadACSStaticContainerInfo(t *testing.T) {
 	os.Setenv(acsStaticContainerInfoMountPathEnvKey, "./bundle")
 	os.Setenv(acsPodInfoMountPathEnvKey, "./etc/podinfo")
 
-	containerInfo, removedIDs, changed, err := tryReadACSStaticContainerInfo()
+	acsContainerProvider := ACSContainerProvider{}
+
+	containerInfo, removedIDs, changed, err := acsContainerProvider.tryReadStaticContainerInfo()
 	require.Nil(t, err)
 	require.Len(t, containerInfo, 1)
 	require.Empty(t, removedIDs)
 	require.True(t, changed)
 
-	containerInfo, removedIDs, changed, err = tryReadACSStaticContainerInfo()
+	containerInfo, removedIDs, changed, err = acsContainerProvider.tryReadStaticContainerInfo()
 	require.Nil(t, err)
 	require.Len(t, containerInfo, 1)
 	require.Empty(t, removedIDs)

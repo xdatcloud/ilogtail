@@ -52,6 +52,9 @@ var lastContainerName2Info map[string]string
 
 var staticContainers []types.ContainerJSON
 
+type ACSContainerProvider struct {
+}
+
 type OCIContainerInfo struct {
 	Annotations map[string]string
 	Process     OCIContainerProcessInfo
@@ -249,7 +252,7 @@ func listSubdirectories(rootPath string) ([]string, error) {
 	return subdirNames, nil
 }
 
-func tryReadACSStaticContainerInfo() ([]types.ContainerJSON, []string, bool, error) {
+func (e *ACSContainerProvider) tryReadStaticContainerInfo() ([]types.ContainerJSON, []string, bool, error) {
 	statusChanged := false
 	loadStaticContainerOnce.Do(
 		func() {
