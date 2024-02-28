@@ -52,9 +52,12 @@ var lastContainerName2Info map[string]string
 
 var staticContainers []types.ContainerJSON
 
+<<<<<<< HEAD
 type ACSContainerProvider struct {
 }
 
+=======
+>>>>>>> 3c21a5e9b5e6f95a3a204f5359101e2e95140823
 type OCIContainerInfo struct {
 	Annotations map[string]string
 	Process     OCIContainerProcessInfo
