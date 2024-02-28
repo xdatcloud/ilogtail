@@ -699,7 +699,8 @@ func TestTryReadStaticContainerInfo(t *testing.T) {
 	defer os.Unsetenv(staticContainerInfoPathEnvKey)
 	os.WriteFile("./static_container.json", []byte(staticDockerConfig), os.ModePerm)
 	os.Setenv(staticContainerInfoPathEnvKey, "./static_container.json")
-	containerInfo, removedIDs, changed, err := tryReadStaticContainerInfo()
+	eciContainerProvider := ECIContainerProvider{}
+	containerInfo, removedIDs, changed, err := eciContainerProvider.tryReadStaticContainerInfo()
 	require.Nil(t, err)
 	require.Len(t, containerInfo, 1)
 	require.Empty(t, removedIDs)
@@ -725,7 +726,7 @@ func TestTryReadStaticContainerInfo(t *testing.T) {
 
 	os.WriteFile("./static_container.json", []byte(staticDockerConfig2), os.ModePerm)
 
-	containerInfo, removedIDs, changed, err = tryReadStaticContainerInfo()
+	containerInfo, removedIDs, changed, err = eciContainerProvider.tryReadStaticContainerInfo()
 	require.Nil(t, err)
 	require.Len(t, containerInfo, 1)
 	require.Len(t, removedIDs, 1)
@@ -739,7 +740,7 @@ func TestTryReadStaticContainerInfo(t *testing.T) {
 	require.Equal(t, "/var/lib/docker/xxxx/1.log", info.LogPath)
 	require.Equal(t, 999999999909, info.State.Pid)
 
-	containerInfo, removedIDs, changed, err = tryReadStaticContainerInfo()
+	containerInfo, removedIDs, changed, err = eciContainerProvider.tryReadStaticContainerInfo()
 	require.Nil(t, err)
 	require.Len(t, containerInfo, 1)
 	require.Len(t, removedIDs, 0)

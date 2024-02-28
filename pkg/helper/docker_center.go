@@ -615,6 +615,7 @@ func (dc *DockerCenter) CreateInfoDetail(info types.ContainerJSON, envConfigPref
 	if criRuntimeWrapper != nil && info.HostConfig != nil && len(did.DefaultRootPath) == 0 {
 		did.DefaultRootPath = criRuntimeWrapper.lookupContainerRootfsAbsDir(info)
 	}
+
 	logger.Debugf(context.Background(), "container(id: %s, name: %s) default root path is %s", info.ID, info.Name, did.DefaultRootPath)
 	return did
 }
@@ -655,7 +656,8 @@ func getDockerCenterInstance() *DockerCenter {
 		}
 		var enableCriFinding = criRuntimeWrapper != nil
 		var enableDocker = dockerCenterInstance.initClient() == nil
-		var enableStatic = isStaticContainerInfoEnabled()
+		enableStatic := false
+		enableStatic, staticContainerProvider = isStaticContainerInfoEnabled()
 		containerFindingManager = NewContainerDiscoverManager(enableDocker, enableCriFinding, enableStatic)
 		containerFindingManager.Init(3)
 		containerFindingManager.TimerFetch()
@@ -671,7 +673,7 @@ func SetEnvConfigPrefix(prefix string) {
 func (dc *DockerCenter) readStaticConfig(forceFlush bool) {
 	staticDockerContainerLock.Lock()
 	defer staticDockerContainerLock.Unlock()
-	containerInfo, removedIDs, changed, err := tryReadStaticContainerInfo()
+	containerInfo, removedIDs, changed, err := staticContainerProvider.tryReadStaticContainerInfo()
 	if err != nil {
 		logger.Warning(context.Background(), "READ_STATIC_CONFIG_ALARM", "read static container info error", err)
 	}
