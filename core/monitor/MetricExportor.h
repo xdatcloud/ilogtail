@@ -31,6 +31,9 @@ public:
 
 private:
     MetricExportor();
+
+    std::map<std::string, std::string> cachedMap;
+    std::mutex mMutex;
     
     int32_t mSendInterval;
     int32_t mLastSendTime;

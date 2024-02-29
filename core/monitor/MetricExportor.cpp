@@ -51,4 +51,21 @@ void MetricExportor::PushMetrics(bool forceSend) {
         delete logGroup;
     }
 }
+
+void MetricExportor::PullMetrics(std::map<std::string, std::string> &metricsMap) {
+    std::lock_guard<std::mutex> lock(mMutex);
+    if (curTime - mLastSendTime < mSendInterval) {
+        for (const auto& kv : cachedMap) {
+            metricsMap[kv.first] = kv.second;
+        }
+        return 
+    } 
+    std::map<std::string, std::string> metricMap;
+    ReadMetrics::GetInstance()->ReadAsMap(metricMap);
+    cachedMap = std::move(metricMap);
+    for (const auto& kv : cachedMap) {
+        metricsMap[kv.first] = kv.second;
+    }
+} 
+
 }

@@ -142,6 +142,7 @@ public:
         return ptr;
     }
     void ReadAsLogGroup(std::map<std::string, sls_logs::LogGroup*>& logGroupMap) const;
+    void ReadAsMap(std::map<std::string, std::string>& map) const;
     void UpdateMetrics();
 
 #ifdef APSARA_UNIT_TEST_MAIN

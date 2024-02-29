@@ -264,6 +264,10 @@ ReadMetrics::~ReadMetrics() {
     Clear();
 }
 
+void ReadMetrics::ReadAsMap(std::map<std::string, std::string>& map) const {
+
+}
+
 void ReadMetrics::ReadAsLogGroup(std::map<std::string, sls_logs::LogGroup*>& logGroupMap) const {
     ReadLock lock(mReadWriteLock);
     MetricsRecord* tmp = mHead;
