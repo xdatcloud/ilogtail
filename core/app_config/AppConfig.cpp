@@ -83,7 +83,6 @@ DEFINE_FLAG_STRING(logtail_sys_conf_dir, "store machine-unique-id, user-defined-
 
 // DEFINE_FLAG_STRING(default_container_mount_path, "", "container_mount.json");
 DEFINE_FLAG_STRING(default_include_config_path, "", "config.d");
-DECLARE_FLAG_STRING(default_container_host_path);
 
 DEFINE_FLAG_INT32(default_oas_connect_timeout, "default (minimum) connect timeout for OSARequest", 5);
 DEFINE_FLAG_INT32(default_oas_request_timeout, "default (minimum) request timeout for OSARequest", 10);
@@ -100,7 +99,6 @@ DEFINE_FLAG_INT32(data_server_port, "", 80);
 // DEFINE_FLAG_STRING(alipay_zone, "", "ALIPAY_ZONE");
 // DEFINE_FLAG_STRING(alipay_zone_env_name, "", "");
 
-DECLARE_FLAG_STRING(check_point_filename);
 
 DECLARE_FLAG_INT32(polling_max_stat_count);
 DECLARE_FLAG_INT32(polling_max_stat_count_per_dir);
@@ -130,9 +128,6 @@ DECLARE_FLAG_INT32(docker_config_update_interval);
 DECLARE_FLAG_INT32(read_local_event_interval);
 
 DECLARE_FLAG_INT32(check_point_dump_interval);
-#ifdef __ENTERPRISE__
-DECLARE_FLAG_STRING(ilogtail_user_defined_id_env_name);
-#endif
 
 DECLARE_FLAG_INT32(logreader_max_rotate_queue_size);
 DECLARE_FLAG_INT32(search_checkpoint_default_dir_depth);
@@ -151,6 +146,12 @@ DEFINE_FLAG_INT32(max_holded_data_size,
 DEFINE_FLAG_INT32(pub_max_holded_data_size,
                   "for every id and metric name, the max data size can be holded in memory (default 512KB)",
                   512 * 1024);
+
+DECLARE_FLAG_STRING(default_container_host_path);
+#ifdef __ENTERPRISE__
+DECLARE_FLAG_STRING(ilogtail_user_defined_id_env_name);
+#endif
+DECLARE_FLAG_STRING(check_point_filename);
 
 namespace logtail {
 AppConfig::AppConfig() {
