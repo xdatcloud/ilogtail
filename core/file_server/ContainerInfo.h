@@ -44,8 +44,10 @@ struct ContainerInfo {
     std::string mLogPath;
     std::string mUpperDir;
     std::vector<Mount> mMounts; // mounts of this container
-    std::vector<sls_logs::LogTag> mTags; // ContainerNameTag
-    std::vector<sls_logs::LogTag> mMetadatas; // ExternalEnvTag and ExternalK8sLabelTag
+    std::vector<sls_logs::LogTag> mTags; // ExternalEnvTag and ExternalK8sLabelTag
+    std::vector<sls_logs::LogTag> mMetadatas; // 通用的容器信息: _image_name_,_container_name_,_pod_name_,
+                                              // _namespace_,_pod_uid_,_container_ip_
+
     Json::Value mJson; // this obj's json, for saving to local file
 
     static bool ParseByJSONObj(const Json::Value&, ContainerInfo&, std::string&);
