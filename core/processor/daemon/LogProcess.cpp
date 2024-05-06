@@ -505,17 +505,20 @@ int LogProcess::ProcessBuffer(std::shared_ptr<LogBuffer>& logBuffer,
 void LogProcess::FillEventGroupMetadata(LogBuffer& logBuffer,
                                         PipelineEventGroup& eventGroup,
                                         LogFileReader::LogFormat fileLogFormat) const {
+    bool isContainerLog = false;
     switch (fileLogFormat) {
         case LogFileReader::LogFormat::DOCKER_JSON_FILE:
             eventGroup.SetMetadata(EventGroupMetaKey::LOG_FORMAT, ProcessorParseContainerLogNative::DOCKER_JSON_FILE);
+            isContainerLog = true;
             break;
         case LogFileReader::LogFormat::CONTAINERD_TEXT:
             eventGroup.SetMetadata(EventGroupMetaKey::LOG_FORMAT, ProcessorParseContainerLogNative::CONTAINERD_TEXT);
+            isContainerLog = true;
             break;
         default:
             break;
     }
-    if (!eventGroup.HasMetadata(EventGroupMetaKey::LOG_FORMAT)) {
+    if (!isContainerLog) {
         eventGroup.SetMetadataNoCopy(EventGroupMetaKey::LOG_FILE_PATH, logBuffer.logFileReader->GetConvertedPath());
         eventGroup.SetMetadataNoCopy(EventGroupMetaKey::LOG_FILE_PATH_RESOLVED,
                                      logBuffer.logFileReader->GetHostLogPath());
