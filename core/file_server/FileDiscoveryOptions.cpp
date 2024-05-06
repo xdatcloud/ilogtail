@@ -657,6 +657,7 @@ bool FileDiscoveryOptions::IsSameContainerInfo(const Json::Value& paramsJSON, co
     if (!mEnableContainerDiscovery)
         return true;
 
+    // 没有AllCmd, 说明不需要UpdateAll
     if (!paramsJSON.isMember("AllCmd")) {
         ContainerInfo containerInfo;
         std::string errorMsg;
@@ -711,6 +712,7 @@ bool FileDiscoveryOptions::UpdateContainerInfo(const Json::Value& paramsJSON, co
     if (!mContainerInfos)
         return false;
 
+    // 没有AllCmd, 说明不需要UpdateAll
     if (!paramsJSON.isMember("AllCmd")) {
         ContainerInfo containerInfo;
         std::string errorMsg;
