@@ -16,9 +16,12 @@
 
 #include "input/InputPrometheus.h"
 
+#include "InputPrometheus.h"
 #include "common/ParamExtractor.h"
 #include "logger/Logger.h"
 #include "pipeline/PipelineContext.h"
+#include "plugin/PluginRegistry.h"
+#include "processor/inner/ProcessorRelabelMetricNative.h"
 #include "prometheus/PrometheusInputRunner.h"
 
 using namespace std;
@@ -29,8 +32,8 @@ const string InputPrometheus::sName = "input_prometheus";
 
 /// @brief Init
 bool InputPrometheus::Init(const Json::Value& config, uint32_t& pluginIdx, Json::Value& optionalGoPipeline) {
-    LOG_INFO(sLogger,("LOG_INFO config", config.toStyledString()));
-    
+    LOG_INFO(sLogger, ("LOG_INFO config", config.toStyledString()));
+
     string errorMsg;
 
     // config["ScrapeConfig"]
@@ -53,6 +56,23 @@ bool InputPrometheus::Init(const Json::Value& config, uint32_t& pluginIdx, Json:
     // 为每个job设置queueKey、inputIndex，inputIndex暂时用0代替
     mScrapeJobPtr->queueKey = mContext->GetProcessQueueKey();
     mScrapeJobPtr->inputIndex = 0;
+
+    // nest processor
+    // scrapeConfig["metric_relabel_configs"]
+    if (scrapeConfig.isMember("metric_relabel_configs")) {
+        const Json::Value& metricRelabelConfigs = scrapeConfig["metric_relabel_configs"];
+        if (!metricRelabelConfigs.isArray()) {
+            errorMsg = "metric_relabel_configs must be an array";
+            LOG_ERROR(sLogger, ("init prometheus input failed", errorMsg));
+            return false;
+        }
+        std::unique_ptr<ProcessorInstance> processor = PluginRegistry::GetInstance()->CreateProcessor(
+            ProcessorRelabelMetricNative::sName, to_string(++pluginIdx));
+        if (!processor->Init(metricRelabelConfigs, *mContext)) {
+            return false;
+        }
+        mInnerProcessors.emplace_back(std::move(processor));
+    }
 
     return true;
 }
