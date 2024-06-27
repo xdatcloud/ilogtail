@@ -18,6 +18,8 @@
 
 #include <algorithm>
 
+#include "common/xxhash/xxhash.h"
+
 using namespace std;
 namespace logtail {
 
@@ -200,7 +202,11 @@ void LabelsBuilder::Range(const std::function<void(Label)>& closure) {
 }
 
 string Labels::Hash() {
-    return to_string(labels.size());
+    string b;
+    for (auto it = labels.begin(); it != labels.end(); it++) {
+        b += it->first + it->second;
+    }
+    return to_string(XXH64(&b, b.size(), 0));
 }
 
 void Labels::RemoveMetaLabels() {

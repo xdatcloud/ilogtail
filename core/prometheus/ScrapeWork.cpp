@@ -18,6 +18,7 @@
 
 #include "TextParser.h"
 #include "common/TimeUtil.h"
+#include "common/xxhash/xxhash.h"
 #include "logger/Logger.h"
 #include "queue/ProcessQueueItem.h"
 #include "queue/ProcessQueueManager.h"
@@ -99,9 +100,8 @@ void ScrapeWork::scrapeLoop() {
 
 uint64_t ScrapeWork::getRandSleep() {
     // 根据target信息构造hash输入
-    string key = string(mTarget.mJobName + mTarget.mScheme + mTarget.mHost + mTarget.mMetricsPath);
-    hash<string> hash_fn;
-    uint64_t h = hash_fn(key);
+    string key = mTarget.mJobName + mTarget.mScheme + mTarget.mHost + mTarget.mMetricsPath + mTarget.mHash;
+    uint64_t h = XXH64(&key, key.size(), 0);
     uint64_t randSleep = ((double)1.0) * mTarget.mScrapeInterval * (1.0 * h / (uint64_t)0xFFFFFFFFFFFFFFFF);
     uint64_t sleepOffset = GetCurrentTimeInNanoSeconds() % (mTarget.mScrapeInterval * 1000ULL * 1000ULL * 1000ULL);
     if (randSleep < sleepOffset) {
@@ -111,7 +111,7 @@ uint64_t ScrapeWork::getRandSleep() {
     return randSleep;
 }
 
-inline sdk::HttpMessage ScrapeWork:: scrape() {
+inline sdk::HttpMessage ScrapeWork::scrape() {
     map<string, string> httpHeader;
     string reqBody;
     sdk::HttpMessage httpResponse;
@@ -119,16 +119,16 @@ inline sdk::HttpMessage ScrapeWork:: scrape() {
     // 使用CurlClient抓取目标
     try {
         mClient->Send(sdk::HTTP_GET,
-                     mTarget.mHost,
-                     mTarget.mPort,
-                     mTarget.mMetricsPath,
-                     mTarget.mQueryString,
-                     mTarget.mHeaders,
-                     reqBody,
-                     mTarget.mScrapeTimeout,
-                     httpResponse,
-                     "",
-                     mTarget.mScheme == "https");
+                      mTarget.mHost,
+                      mTarget.mPort,
+                      mTarget.mMetricsPath,
+                      mTarget.mQueryString,
+                      mTarget.mHeaders,
+                      reqBody,
+                      mTarget.mScrapeTimeout,
+                      httpResponse,
+                      "",
+                      mTarget.mScheme == "https");
     } catch (const sdk::LOGException& e) {
         printf("errCode %s, errMsg %s \n", e.GetErrorCode().c_str(), e.GetMessage().c_str());
     }
