@@ -59,7 +59,7 @@ public:
                       const std::string& intf,
                       const bool httpsFlag);
     virtual void AsynSend(sdk::AsynRequest* request);
-    
+
     bool mDoScrape = false;
 };
 
@@ -222,6 +222,7 @@ void InputPrometheusUnittest::OnSuccessfulInit() {
     unique_ptr<InputPrometheus> input;
     Json::Value configJson, optionalGoPipeline;
     string configStr, errorMsg;
+    uint32_t pluginIdx = 0;
     // only mandatory param
     configStr = R"(
         {
@@ -232,7 +233,7 @@ void InputPrometheusUnittest::OnSuccessfulInit() {
     input.reset(new InputPrometheus());
     input->SetContext(ctx);
     input->SetMetricsRecordRef(InputPrometheus::sName, "1");
-    APSARA_TEST_FALSE(input->Init(configJson, optionalGoPipeline));
+    APSARA_TEST_FALSE(input->Init(configJson, pluginIdx, optionalGoPipeline));
 
     // with scrape job
     configStr = R"(
@@ -256,7 +257,7 @@ void InputPrometheusUnittest::OnSuccessfulInit() {
     input.reset(new InputPrometheus());
     input->SetContext(ctx);
     input->SetMetricsRecordRef(InputPrometheus::sName, "1");
-    APSARA_TEST_TRUE(input->Init(configJson, optionalGoPipeline));
+    APSARA_TEST_TRUE(input->Init(configJson, pluginIdx, optionalGoPipeline));
     APSARA_TEST_EQUAL("_arms-prom/node-exporter/0", input->mScrapeJobPtr->mJobName);
     APSARA_TEST_EQUAL("/metrics", input->mScrapeJobPtr->mMetricsPath);
     APSARA_TEST_EQUAL("15s", input->mScrapeJobPtr->mScrapeIntervalString);
@@ -269,6 +270,7 @@ void InputPrometheusUnittest::OnPipelineUpdate() {
     unique_ptr<InputPrometheus> input;
     Json::Value configJson, optionalGoPipeline;
     string configStr, errorMsg;
+    uint32_t pluginIdx = 0;
     configStr = R"(
         {
             "Type": "input_prometheus",
@@ -290,7 +292,7 @@ void InputPrometheusUnittest::OnPipelineUpdate() {
     input.reset(new InputPrometheus());
     input->SetContext(ctx);
     input->SetMetricsRecordRef(InputPrometheus::sName, "1");
-    APSARA_TEST_TRUE(input->Init(configJson, optionalGoPipeline));
+    APSARA_TEST_TRUE(input->Init(configJson, pluginIdx, optionalGoPipeline));
 
     APSARA_TEST_TRUE(input->Start());
     APSARA_TEST_TRUE(PrometheusInputRunner::GetInstance()->mPrometheusInputsMap.find("test_config")
@@ -418,10 +420,11 @@ void InputPrometheusUnittest::TestScrapeData() {
 
     unique_ptr<InputPrometheus> input;
     Json::Value optionalGoPipeline;
+    uint32_t pluginIdx = 0;
     input.reset(new InputPrometheus());
     input->SetContext(ctx);
     input->SetMetricsRecordRef(InputPrometheus::sName, "1");
-    APSARA_TEST_TRUE(input->Init(mConfig, optionalGoPipeline));
+    APSARA_TEST_TRUE(input->Init(mConfig, pluginIdx, optionalGoPipeline));
     input->Start();
 
     std::this_thread::sleep_for(std::chrono::seconds(6));
